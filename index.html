@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MK Makes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Caveat:wght@700&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #1a1209;
+      --cream: #f5f0e8;
+      --yellow: #f2c94c;
+      --red: #d94f3d;
+      --teal: #2a9d8f;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background-color: var(--cream);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Space Mono', monospace;
+      cursor: none;
+      position: relative;
+    }
+
+    /* Paper texture */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Background shapes layer */
+    .bg-shapes {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .shape {
+      position: absolute;
+      opacity: 0;
+      animation: floatIn 0.6s ease forwards;
+    }
+    .shape svg { display: block; }
+
+    /* Shapes that float up and down gently */
+    .shape.bob { animation: floatIn 0.6s ease forwards, bob var(--bob-dur, 4s) ease-in-out var(--bob-delay, 0s) infinite; }
+    /* Shapes that spin continuously */
+    .shape.spin-slow { animation: floatIn 0.6s ease forwards, spinSelf var(--spin-dur, 8s) linear var(--bob-delay, 0s) infinite; }
+    .shape.spin-rev  { animation: floatIn 0.6s ease forwards, spinRev  var(--spin-dur, 6s) linear var(--bob-delay, 0s) infinite; }
+    /* Shapes that orbit */
+    .orbit-wrap {
+      position: absolute;
+      pointer-events: none;
+    }
+    .orbit-arm {
+      transform-origin: 0 0;
+      animation: orbitSpin var(--orbit-dur, 10s) linear infinite;
+    }
+    .orbit-dot svg { display: block; }
+
+    @keyframes floatIn {
+      0%  { opacity: 0; transform: scale(0.4) rotate(var(--rot, 0deg)); }
+      100% { opacity: 1; transform: scale(1) rotate(var(--rot, 0deg)); }
+    }
+    @keyframes bob {
+      0%, 100% { transform: rotate(var(--rot, 0deg)) translateY(0); }
+      50%       { transform: rotate(var(--rot, 0deg)) translateY(-12px); }
+    }
+    @keyframes spinSelf {
+      0%   { opacity: 1; transform: rotate(0deg); }
+      100% { opacity: 1; transform: rotate(360deg); }
+    }
+    @keyframes spinRev {
+      0%   { opacity: 1; transform: rotate(0deg); }
+      100% { opacity: 1; transform: rotate(-360deg); }
+    }
+    @keyframes orbitSpin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Star trail */
+    .star-trail {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      animation: trailFade var(--trail-dur, 0.6s) ease forwards;
+    }
+    @keyframes trailFade {
+      0%   { opacity: 1; transform: translate(-50%, -50%) scale(1)   rotate(var(--trail-rot, 0deg)); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(0.2) rotate(var(--trail-rot, 0deg)); }
+    }
+
+    /* Main card */
+    .card {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      padding: clamp(32px, 6vw, 60px) clamp(32px, 8vw, 80px);
+      background: var(--cream);
+      border: 3px solid var(--ink);
+      box-shadow: 8px 8px 0 var(--ink);
+      animation: stampIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.5) 0.2s both;
+      max-width: 90vw;
+    }
+
+    @keyframes stampIn {
+      0%   { transform: scale(1.5) rotate(-3deg); opacity: 0; }
+      100% { transform: scale(1)   rotate(0deg);  opacity: 1; }
+    }
+
+    /* Spinning star badge */
+    .badge {
+      position: absolute;
+      top: -28px;
+      right: -28px;
+      width: clamp(56px, 10vw, 80px);
+      height: clamp(56px, 10vw, 80px);
+      animation: spinSelf 10s linear infinite;
+    }
+
+    /* Second badge — bottom left, reverse spin */
+    .badge2 {
+      position: absolute;
+      bottom: -22px;
+      left: -22px;
+      width: clamp(40px, 7vw, 56px);
+      height: clamp(40px, 7vw, 56px);
+      animation: spinRev 7s linear infinite;
+      opacity: 1;
+    }
+
+    /* Main title */
+    .title {
+      font-family: 'Boogaloo', cursive;
+      font-size: clamp(64px, 16vw, 130px);
+      color: var(--ink);
+      line-height: 0.9;
+      letter-spacing: -2px;
+      position: relative;
+      display: inline-block;
+    }
+
+    .title .mk    { display: block; position: relative; }
+    .title .makes {
+      display: block;
+      color: var(--red);
+      position: relative;
+      -webkit-text-stroke: 2px var(--ink);
+    }
+
+    /* Wobbly underline on Makes */
+    .title .makes::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 0; right: 0;
+      height: 6px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='8'%3E%3Cpath d='M0 5 Q25 1 50 5 Q75 9 100 5 Q125 1 150 5 Q175 9 200 5' stroke='%231a1209' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-size: 200px 8px;
+      background-repeat: repeat-x;
+    }
+
+    /* Est label */
+    .est {
+      font-family: 'Caveat', cursive;
+      font-size: clamp(22px, 4vw, 28px);
+      color: var(--ink);
+      margin-top: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      letter-spacing: 1px;
+    }
+    .est-line {
+      flex: 1;
+      height: 2px;
+      background: var(--ink);
+      max-width: 60px;
+    }
+
+    /* Corner marks */
+    .corner { position: absolute; width: 20px; height: 20px; }
+    .corner.tl { top: 8px; left: 8px;   border-top: 2px solid var(--ink); border-left:  2px solid var(--ink); }
+    .corner.tr { top: 8px; right: 8px;  border-top: 2px solid var(--ink); border-right: 2px solid var(--ink); }
+    .corner.bl { bottom: 8px; left: 8px;  border-bottom: 2px solid var(--ink); border-left:  2px solid var(--ink); }
+    .corner.br { bottom: 8px; right: 8px; border-bottom: 2px solid var(--ink); border-right: 2px solid var(--ink); }
+
+    /* Hover wiggle */
+    .title:hover .mk    { animation: wiggle 0.3s ease; }
+    .title:hover .makes { animation: wiggle 0.3s ease 0.06s; }
+    @keyframes wiggle {
+      0%, 100% { transform: rotate(0); }
+      25%  { transform: rotate(-2deg); }
+      75%  { transform: rotate(2deg); }
+    }
+
+    /* Dash-drawing ring animation */
+    .ring-draw {
+      stroke-dasharray: 120;
+      stroke-dashoffset: 120;
+      animation: drawRing 1.5s ease forwards;
+    }
+    @keyframes drawRing {
+      to { stroke-dashoffset: 0; }
+    }
+
+    /* Pulse ring */
+    @keyframes pulsate {
+      0%, 100% { transform: scale(1);   opacity: 0.5; }
+      50%       { transform: scale(1.2); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-shapes" id="bgShapes"></div>
+
+  <!-- Orbiting elements (outside card, absolute positioned via JS) -->
+  <div id="orbits"></div>
+
+  <div class="card">
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
+
+    <!-- Spinning star top-right -->
+    <svg class="badge" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+      <path d="M40 5 L43.5 28 L62 15 L52 36 L75 36 L57 48 L68 68 L44 57 L40 75 L36 57 L12 68 L23 48 L5 36 L28 36 L18 15 L37 28 Z"
+        fill="#f2c94c" stroke="#1a1209" stroke-width="2" stroke-linejoin="round"/>
+    </svg>
+
+    <!-- Smaller reverse-spinning teal star bottom-left -->
+    <svg class="badge2" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+      <path d="M28 3 L30.5 19 L43 10 L36 23 L52 23 L40 33 L47 47 L31 40 L28 53 L25 40 L9 47 L16 33 L4 23 L20 23 L13 10 L25.5 19 Z"
+        fill="#2a9d8f" stroke="#1a1209" stroke-width="2" stroke-linejoin="round"/>
+    </svg>
+
+    <div class="title">
+      <span class="mk">MK</span>
+      <span class="makes">Makes</span>
+    </div>
+
+    <div class="est">
+      <span class="est-line"></span>
+      est. 2026
+      <span class="est-line"></span>
+    </div>
+  </div>
+
+  <script>
+    /* ── Star trail cursor ── */
+    const trailColors = ['#f2c94c', '#d94f3d', '#2a9d8f', '#1a1209'];
+    const trailShapes = [
+      (c) => `<svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 1L10 6L15 8L10 10L8 15L6 10L1 8L6 6Z" fill="${c}"/></svg>`,
+      (c) => `<svg width="14" height="14" viewBox="0 0 14 14"><polygon points="7,1 8.5,5.5 13,5.5 9.5,8.5 11,13 7,10 3,13 4.5,8.5 1,5.5 5.5,5.5" fill="${c}"/></svg>`,
+      (c) => `<svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="${c}"/></svg>`,
+      (c) => `<svg width="12" height="12" viewBox="0 0 12 12"><rect x="1" y="1" width="10" height="10" fill="${c}" transform="rotate(30 6 6)"/></svg>`,
+    ];
+
+    let lastTrail = 0;
+    let trailIdx = 0;
+    document.addEventListener('mousemove', e => {
+      const now = Date.now();
+      if (now - lastTrail < 40) return;
+      lastTrail = now;
+
+      const color = trailColors[trailIdx % trailColors.length];
+      const shape = trailShapes[trailIdx % trailShapes.length];
+      trailIdx++;
+
+      const el = document.createElement('div');
+      el.className = 'star-trail';
+      const rot = Math.random() * 360;
+      const dur = 0.5 + Math.random() * 0.4;
+      el.style.cssText = `left:${e.clientX}px;top:${e.clientY}px;--trail-rot:${rot}deg;--trail-dur:${dur}s;`;
+      el.innerHTML = shape(color);
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), dur * 1000 + 50);
+    });
+
+    const card = document.querySelector('.card');
+    card.addEventListener('mouseenter', () => {});
+    card.addEventListener('mouseleave', () => {});
+
+    /* ── Background scattered shapes ── */
+    const bgContainer = document.getElementById('bgShapes');
+
+    const scatterShapes = [
+      // dashed circle — bobs
+      { html: `<svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="19" fill="none" stroke="#2a9d8f" stroke-width="2.5" stroke-dasharray="5 3"/></svg>`,
+        x:'7%', y:'8%', cls:'bob', rot:'0deg', bobDur:'5s', bobDelay:'0s', delay:0.3 },
+      // red tilted square — bobs
+      { html: `<svg width="34" height="34" viewBox="0 0 34 34"><rect x="3" y="3" width="28" height="28" fill="none" stroke="#d94f3d" stroke-width="2.5" transform="rotate(20 17 17)"/></svg>`,
+        x:'85%', y:'6%', cls:'bob', rot:'0deg', bobDur:'6s', bobDelay:'1s', delay:0.5 },
+      // yellow star — slow spin
+      { html: `<svg width="50" height="50" viewBox="0 0 50 50"><polygon points="25,4 29,18 43,18 32,27 36,41 25,33 14,41 18,27 7,18 21,18" fill="#f2c94c" stroke="#1a1209" stroke-width="2"/></svg>`,
+        x:'4%', y:'72%', cls:'spin-slow', rot:'0deg', spinDur:'9s', bobDelay:'0.2s', delay:0.7 },
+      // ink dashed square
+      { html: `<svg width="36" height="36" viewBox="0 0 36 36"><rect x="3" y="3" width="30" height="30" fill="none" stroke="#1a1209" stroke-width="2" stroke-dasharray="6 2"/></svg>`,
+        x:'80%', y:'68%', cls:'bob', rot:'-15deg', bobDur:'7s', bobDelay:'0.5s', delay:0.4 },
+      // red triangle — bobs
+      { html: `<svg width="46" height="46" viewBox="0 0 46 46"><polygon points="23,3 43,42 3,42" fill="#d94f3d" stroke="#1a1209" stroke-width="2" stroke-linejoin="round" opacity="0.75"/></svg>`,
+        x:'90%', y:'42%', cls:'bob', rot:'5deg', bobDur:'4.5s', bobDelay:'0.8s', delay:0.9 },
+      // teal double circle — bobs
+      { html: `<svg width="36" height="36" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="#2a9d8f" opacity="0.18"/><circle cx="18" cy="18" r="8" fill="#2a9d8f" opacity="0.45"/></svg>`,
+        x:'10%', y:'48%', cls:'bob', rot:'0deg', bobDur:'5.5s', bobDelay:'1.2s', delay:0.6 },
+      // wavy line — bobs
+      { html: `<svg width="64" height="18" viewBox="0 0 64 18"><path d="M2 9 Q16 2 32 9 Q48 16 62 9" stroke="#f2c94c" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`,
+        x:'68%', y:'18%', cls:'bob', rot:'-20deg', bobDur:'6s', bobDelay:'0.3s', delay:1.0 },
+      // small 4-point star — spin reverse
+      { html: `<svg width="28" height="28" viewBox="0 0 28 28"><path d="M14 2 L16.5 11.5 L26 14 L16.5 16.5 L14 26 L11.5 16.5 L2 14 L11.5 11.5 Z" fill="#1a1209" opacity="0.2"/></svg>`,
+        x:'53%', y:'84%', cls:'spin-rev', rot:'0deg', spinDur:'5s', bobDelay:'0s', delay:0.8 },
+      // X-box — bobs
+      { html: `<svg width="34" height="34" viewBox="0 0 34 34"><rect x="3" y="3" width="28" height="28" rx="4" fill="none" stroke="#d94f3d" stroke-width="2"/><line x1="3" y1="3" x2="31" y2="31" stroke="#d94f3d" stroke-width="1.5"/><line x1="31" y1="3" x2="3" y2="31" stroke="#d94f3d" stroke-width="1.5"/></svg>`,
+        x:'36%', y:'4%', cls:'bob', rot:'10deg', bobDur:'5s', bobDelay:'0.6s', delay:0.35 },
+      // dashed vertical line — bobs
+      { html: `<svg width="20" height="64" viewBox="0 0 20 64"><line x1="10" y1="2" x2="10" y2="62" stroke="#1a1209" stroke-width="2.5" stroke-dasharray="5 4" stroke-linecap="round"/></svg>`,
+        x:'24%', y:'80%', cls:'bob', rot:'30deg', bobDur:'7s', bobDelay:'0.4s', delay:1.1 },
+      // teal spinning ring (draw-in then spin)
+      { html: `<svg width="48" height="48" viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="none" stroke="#2a9d8f" stroke-width="2.5" stroke-dasharray="10 4"/></svg>`,
+        x:'62%', y:'74%', cls:'spin-slow', rot:'0deg', spinDur:'6s', bobDelay:'0s', delay:0.55 },
+      // yellow diamond — bobs
+      { html: `<svg width="32" height="32" viewBox="0 0 32 32"><rect x="6" y="6" width="20" height="20" fill="#f2c94c" stroke="#1a1209" stroke-width="2" transform="rotate(45 16 16)"/></svg>`,
+        x:'46%', y:'90%', cls:'bob', rot:'0deg', bobDur:'4s', bobDelay:'1s', delay:0.65 },
+    ];
+
+    scatterShapes.forEach(s => {
+      const div = document.createElement('div');
+      div.className = 'shape ' + s.cls;
+      let css = `left:${s.x};top:${s.y};--rot:${s.rot};animation-delay:${s.delay}s;`;
+      if (s.bobDur)  css += `--bob-dur:${s.bobDur};`;
+      if (s.bobDelay) css += `--bob-delay:${s.bobDelay};`;
+      if (s.spinDur) css += `--spin-dur:${s.spinDur};`;
+      div.style.cssText = css;
+      div.innerHTML = s.html;
+      bgContainer.appendChild(div);
+    });
+
+    /* ── Orbiting shapes around the card ── */
+    function addOrbit(cx, cy, radius, dur, startAngle, shapeSvg, size, reversed) {
+      const wrap = document.createElement('div');
+      wrap.style.cssText = `position:fixed;left:${cx}px;top:${cy}px;pointer-events:none;z-index:5;width:0;height:0;`;
+
+      const arm = document.createElement('div');
+      arm.style.cssText = `
+        position:absolute;
+        width:${radius}px;height:2px;
+        transform-origin:0 0;
+        transform:rotate(${startAngle}deg);
+        animation:orbitSpin ${dur}s linear infinite ${reversed ? '' : 'reverse'};
+      `;
+
+      const dot = document.createElement('div');
+      dot.style.cssText = `position:absolute;right:-${size/2}px;top:-${size/2}px;width:${size}px;height:${size}px;`;
+      dot.innerHTML = shapeSvg;
+
+      arm.appendChild(dot);
+      wrap.appendChild(arm);
+      document.getElementById('orbits').appendChild(wrap);
+    }
+
+    function positionOrbits() {
+      document.getElementById('orbits').innerHTML = '';
+      const r = card.getBoundingClientRect();
+      const cx = r.left + r.width  / 2;
+      const cy = r.top  + r.height / 2;
+      const rx = r.width  / 2 + 52;
+      const ry = r.height / 2 + 52;
+      // use average as rough orbit radius (ellipse approximation via single radius)
+      const orb = Math.max(rx, ry);
+
+      addOrbit(cx, cy, orb,       14, 0,   `<svg width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="9" fill="#f2c94c" stroke="#1a1209" stroke-width="2"/></svg>`, 22, false);
+      addOrbit(cx, cy, orb * 1.05, 9, 90,  `<svg width="20" height="20" viewBox="0 0 20 20"><rect x="2" y="2" width="16" height="16" fill="none" stroke="#d94f3d" stroke-width="2" transform="rotate(30 10 10)"/></svg>`, 20, true);
+      addOrbit(cx, cy, orb * 0.95, 18, 180, `<svg width="18" height="18" viewBox="0 0 18 18"><polygon points="9,1 11,7 17,7 12,11 14,17 9,13 4,17 6,11 1,7 7,7" fill="#2a9d8f" stroke="#1a1209" stroke-width="1.5"/></svg>`, 18, false);
+      addOrbit(cx, cy, orb * 1.08, 11, 270, `<svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 1L10 6L15 8L10 10L8 15L6 10L1 8L6 6Z" fill="#1a1209" opacity="0.35"/></svg>`, 16, true);
+    }
+
+    positionOrbits();
+    window.addEventListener('resize', positionOrbits);
+
+    /* ── Click/tap burst ── */
+    const burstStyle = document.createElement('style');
+    burstStyle.textContent = `@keyframes burstFade{0%{transform:scale(0);opacity:1}100%{transform:scale(1.6);opacity:0}}`;
+    document.head.appendChild(burstStyle);
+
+    function spawnBurst(x, y) {
+      const burst = document.createElement('div');
+      burst.style.cssText = `position:fixed;left:${x}px;top:${y}px;pointer-events:none;z-index:9998;transform:translate(-50%,-50%)`;
+      burst.innerHTML = `<svg width="70" height="70" viewBox="0 0 70 70"><g style="animation:burstFade 0.5s ease forwards">
+        <line x1="35" y1="35" x2="35" y2="8"  stroke="#f2c94c" stroke-width="3" stroke-linecap="round"/>
+        <line x1="35" y1="35" x2="35" y2="62" stroke="#f2c94c" stroke-width="3" stroke-linecap="round"/>
+        <line x1="35" y1="35" x2="8"  y2="35" stroke="#d94f3d" stroke-width="3" stroke-linecap="round"/>
+        <line x1="35" y1="35" x2="62" y2="35" stroke="#d94f3d" stroke-width="3" stroke-linecap="round"/>
+        <line x1="35" y1="35" x2="15" y2="15" stroke="#2a9d8f" stroke-width="2" stroke-linecap="round"/>
+        <line x1="35" y1="35" x2="55" y2="55" stroke="#2a9d8f" stroke-width="2" stroke-linecap="round"/>
+        <line x1="35" y1="35" x2="55" y2="15" stroke="#2a9d8f" stroke-width="2" stroke-linecap="round"/>
+        <line x1="35" y1="35" x2="15" y2="55" stroke="#2a9d8f" stroke-width="2" stroke-linecap="round"/>
+      </g></svg>`;
+      document.body.appendChild(burst);
+      setTimeout(() => burst.remove(), 500);
+    }
+
+    document.addEventListener('click',      e => spawnBurst(e.clientX, e.clientY));
+    document.addEventListener('touchstart', e => {
+      const t = e.touches[0];
+      spawnBurst(t.clientX, t.clientY);
+    }, { passive: true });
+  </script>
+</body>
+</html>
